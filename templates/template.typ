@@ -4,10 +4,10 @@
   work: "", date: ""
 ) = {
   set page(paper: "a4", flipped: true, margin: 0.5cm)
-  set text(font: "DejaVu Sans", size: 6.5pt)
+  set text(font: "DejaVu Sans", size: 7.2pt)
   
   let field(body, w: auto) = box(width: w, stroke: (bottom: 0.5pt), inset: (bottom: 1pt), outset: (bottom: 1pt))[#body]
-  let empty_f(..args) = box(width: args.pos().at(0, default: 100%), stroke: (bottom: 0.5pt))
+  let empty_f(w) = box(width: w, stroke: (bottom: 0.5pt))
   let sub(body) = text(size: 5pt)[#body]
   let h_cell(h, body) = box(height: h, width: 100%, align(center + horizon)[#body])
 
@@ -23,8 +23,8 @@
           ]
         ],
         [
-          #text(12pt, weight: "bold")[ПУТЕВОЙ ЛИСТ] #linebreak()
-          #text(10pt, weight: "bold")[грузового автомобиля] № #empty_f(2cm) #linebreak()
+          #text(13pt, weight: "bold")[ПУТЕВОЙ ЛИСТ] #linebreak()
+          #text(11pt, weight: "bold")[грузового автомобиля] № #empty_f(2.5cm) #linebreak()
           #v(3pt)
           #empty_f(1cm) #field(date) 20 #empty_f(0.5cm) г.
         ],
@@ -66,24 +66,24 @@
             columns: (auto, 1fr, auto, 3cm, auto, 2cm),
             align: bottom,
             row-gutter: 8pt,
-            [Марка автомобиля ], [#field(vehicle, w: 100%)], [ Гос. номер ], [#field(license_plate, w: 100%)], [ Гаражный № ], [#empty_f(100%)],
-            [Водитель ], [#field(driver, w: 100%)], [ Табельный № ], [#empty_f(100%)], [], [],
+            [Марка автомобиля ], [#h(5pt) #field(vehicle, w: 100%) #h(5pt)], [ Гос. номер ], [#h(5pt) #field(license_plate, w: 100%) #h(5pt)], [ Гаражный № ], [#h(5pt) #empty_f(100%)],
+            [Водитель ], [#h(5pt) #field(driver, w: 100%) #h(5pt)], [ Табельный № ], [#h(5pt) #empty_f(100%)], [], [],
           )
           #v(4pt)
           #grid(
-            columns: (auto, 1fr, auto, 1fr, auto, 1fr),
+            columns: (auto, 1.5fr, auto, 1fr, auto, 1fr),
             align: bottom,
             row-gutter: 8pt,
-            [Удостоверение № ], [#field(driving_license, w: 100%)], [ Класс ], [#empty_f(100%)], [ СНИЛС ], [#field(snils, w: 100%)],
-            [Лиценз. карточка ], [#empty_f(100%)], [ Рег. № ], [#empty_f(100%)], [ Серия ], [#empty_f(100%)],
-            [Прицеп 1 ], [#empty_f(100%)], [ Гос. номер ], [#empty_f(100%)], [ Гаражный № ], [#empty_f(100%)],
-            [Прицеп 2 ], [#empty_f(100%)], [ Гос. номер ], [#empty_f(100%)], [ Гаражный № ], [#empty_f(100%)],
+            [Удостоверение № ], [#h(5pt) #field(driving_license, w: 100%) #h(5pt)], [ Класс ], [#h(5pt) #empty_f(100%)], [ СНИЛС ], [#h(5pt) #field(snils, w: 100%)],
+            [Лиценз. карточка ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Рег. № ], [#h(5pt) #empty_f(100%)], [ Серия ], [#h(5pt) #empty_f(100%)],
+            [Прицеп 1 ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гос. номер ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гаражный № ], [#h(5pt) #empty_f(100%)],
+            [Прицеп 2 ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гос. номер ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гаражный № ], [#h(5pt) #empty_f(100%)],
           )
           #v(4pt)
           #grid(
             columns: (auto, 1fr),
             align: bottom,
-            [Сопровождающие лица ], [#empty_f(100%)]
+            [Сопровождающие лица ], [#h(5pt) #empty_f(100%)]
           )
         ],
         [
@@ -92,7 +92,7 @@
             column-gutter: 5pt,
             [
               #grid(
-                columns: (2cm, 0.8cm),
+                columns: (2.2cm, 0.8cm),
                 stroke: 0.5pt,
                 inset: 3pt,
                 align: center,

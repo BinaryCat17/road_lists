@@ -1,8 +1,7 @@
 /target
 /data/road_lists.db
 /data/temp.typ
-/static/out.pdf
-/static/out_batch.pdf
 .env
 *.png
 *.jpg
+*.pdf
