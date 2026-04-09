@@ -18,15 +18,13 @@
         align: (left, center, right),
         [
           #v(15pt)
-          #box(width: 3.5cm, height: 1.2cm, stroke: 0.5pt)[
-            #align(center + horizon)[#text(size: 6pt)[Место для штампа\ организации]]
-          ]
         ],
         [
           #text(13pt, weight: "bold")[ПУТЕВОЙ ЛИСТ] #linebreak()
           #text(11pt, weight: "bold")[грузового автомобиля] № #empty_f(2.5cm) #linebreak()
           #v(3pt)
-          #empty_f(1cm) #field(date) 20 #empty_f(0.5cm) г.
+          #let d = if date.contains(".") { date.split(".") } else { ("  ", "  ", "    ") }
+          #text(size: 10pt, weight: "bold")[#d.at(0) #if d.at(1) == "04" { "апреля" } else { d.at(1) } 20#if d.at(2).len() > 2 { d.at(2).slice(2) } else { d.at(2) } г.]
         ],
         [
           #text(size: 6pt)[
@@ -143,14 +141,13 @@
               grid.cell(colspan: 2)[Время работы],
               [марка], [код], [выезде], [возвр.], [спец.], [двиг.],
               [9], [10], [11], [12], [13], [14], [15], [16], [17],
-              [#h_cell(12pt, "дизель")], [], [], [], [], [], [], [], [],
-              grid.cell(colspan: 2)[#h_cell(12pt, "подпись")], [запр.], [мех.], [мех.], [запр.], [дисп.], [], []
+              [#h_cell(12pt, "дизель")], [], [], [], [], [], [], [], []
             )
           ]
         ]
       )
 
-      #v(5pt)
+      #v(0pt)
       #align(center)[*ЗАДАНИЕ ВОДИТЕЛЮ*]
       #grid(
         columns: (1fr, 1.5cm, 2cm, 2cm, 2.5cm, 1.2cm, 1.2cm, 1.2cm),
@@ -173,51 +170,51 @@
       )
 
       #v(6pt)
-      #let sig(w) = box(width: w)[
-        #empty_f(100%)\
-        #v(-5pt)
-        #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
-      ]
-      #let sig_doc(w) = box(width: w)[
-        #empty_f(100%)\
-        #v(-5pt)
-        #align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]
-      ]
+      #let sig_row(label, w) = grid(
+        columns: (auto, w),
+        column-gutter: 5pt,
+        row-gutter: 0pt,
+        align: (left + bottom, center),
+        [#label], [#empty_f(100%)],
+        [], [#v(-4pt) #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]]
+      )
+      #let sig_doc_row(label, w) = grid(
+        columns: (auto, w),
+        column-gutter: 5pt,
+        row-gutter: 0pt,
+        align: (left + bottom, center),
+        [#label], [#empty_f(100%)],
+        [], [#v(-4pt) #align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]]
+      )
       #grid(
         columns: (1.5fr, 1.5fr, 1fr),
         column-gutter: 15pt,
         [
           Водительское удостоверение проверил, задание выдал,\
-          выдать горючее #empty_f(1.5cm) литров\
+          выдать горючее #empty_f(1.5cm) литров
+          #v(2pt)
+          #sig_row("Диспетчер", 4cm)
+          #v(2pt)
+          Водитель по состоянию здоровья к управлению допущен
+          #v(2pt)
+          #sig_doc_row("", 6cm)
           #v(8pt)
-          Диспетчер #sig(4cm)\
-          #v(4pt)
-          Водитель по состоянию здоровья к управлению допущен\
-          #sig_doc(6cm)\
-          #v(4pt)
-          Прошел послерейсовый медицинский осмотр\
-          #sig(6cm)
+          Прошел послерейсовый медицинский осмотр
+          #v(2pt)
+          #sig_row("", 6cm)
         ],
         [
-          Автомобиль технически исправен.\
-          #grid(
-            columns: (auto, 1fr),
-            column-gutter: 5pt,
-            align: top,
-            [Выезд разрешен. Механик], [#sig(100%)]
-          )
-          #v(4pt)
-          #grid(
-            columns: (auto, 1fr),
-            column-gutter: 5pt,
-            align: top,
-            [Автомобиль принял: Водитель], [#sig(100%)]
-          )
-          #v(4pt)
-          При возвращении автомобиль #empty_f(2.5cm) #sub[исправен/неисправен]\
-          #v(8pt)
-          Сдал водитель #sig(4cm)\
-          Принял механик #sig(4cm)
+          Автомобиль технически исправен.
+          #v(2pt)
+          #sig_row("Выезд разрешен. Механик", 1fr)
+          #v(2pt)
+          #sig_row("Автомобиль принял: Водитель", 1fr)
+          #v(2pt)
+          При возвращении автомобиль #empty_f(2.5cm) #sub[исправен/неисправен]
+          #v(6pt)
+          #sig_row("Сдал водитель", 1fr)
+          #v(2pt)
+          #sig_row("Принял механик", 1fr)
         ],
         [
           Отметки организации-владельца\
