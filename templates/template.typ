@@ -52,7 +52,7 @@
       #v(5pt)
 
       #grid(
-        columns: (13.5cm, 1fr),
+        columns: (15.8cm, 1fr),
         column-gutter: 10pt,
         [
           #grid(
@@ -64,7 +64,7 @@
           )
           #v(4pt)
           #grid(
-            columns: (auto, 1fr, auto, 3cm, auto, 2cm),
+            columns: (auto, 1fr, auto, 2.2cm, auto, 1.5cm),
             column-gutter: 5pt,
             align: bottom,
             row-gutter: 8pt,
@@ -109,7 +109,7 @@
             [
               #align(right)[
                 #grid(
-                  columns: (1.8cm, 0.7cm, 0.7cm, 0.7cm, 0.7cm, 1.2cm, 1.5cm, 1.8cm),
+                  columns: (1.8cm, 0.7cm, 0.7cm, 0.7cm, 0.7cm, 1.2cm, 1.6cm, 1.8cm),
                   stroke: 0.5pt,
                   inset: 2pt,
                   align: center + horizon,
@@ -173,6 +173,16 @@
       )
 
       #v(6pt)
+      #let sig(w) = box(width: w)[
+        #empty_f(100%)\
+        #v(-5pt)
+        #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
+      ]
+      #let sig_doc(w) = box(width: w)[
+        #empty_f(100%)\
+        #v(-5pt)
+        #align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]
+      ]
       #grid(
         columns: (1.5fr, 1.5fr, 1fr),
         column-gutter: 15pt,
@@ -180,39 +190,34 @@
           Водительское удостоверение проверил, задание выдал,\
           выдать горючее #empty_f(1.5cm) литров\
           #v(8pt)
-          Диспетчер #empty_f(4cm)\
-          #v(-5pt)
-          #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
+          Диспетчер #sig(4cm)\
           #v(4pt)
           Водитель по состоянию здоровья к управлению допущен\
-          #empty_f(6cm)\
-          #v(-5pt)
-          #align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]
+          #sig_doc(6cm)\
           #v(4pt)
-          #text(weight: "bold")[Место для штампа]
+          Прошел послерейсовый медицинский осмотр\
+          #sig(6cm)
         ],
         [
-          Автомобиль технически исправен. Выезд разрешен. Механик\
-          #empty_f(6cm)\
-          #v(-5pt)
-          #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
+          Автомобиль технически исправен.\
+          #grid(
+            columns: (auto, 1fr),
+            column-gutter: 5pt,
+            align: top,
+            [Выезд разрешен. Механик], [#sig(100%)]
+          )
           #v(4pt)
           #grid(
             columns: (auto, 1fr),
             column-gutter: 5pt,
-            [Автомобиль принял: Водитель], [#empty_f(100%)]
+            align: top,
+            [Автомобиль принял: Водитель], [#sig(100%)]
           )
-          #v(-5pt)
-          #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
           #v(4pt)
           При возвращении автомобиль #empty_f(2.5cm) #sub[исправен/неисправен]\
           #v(8pt)
-          Сдал водитель #empty_f(4cm)\
-          #v(-5pt)
-          #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
-          Принял механик #empty_f(4cm)\
-          #v(-5pt)
-          #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
+          Сдал водитель #sig(4cm)\
+          Принял механик #sig(4cm)
         ],
         [
           Отметки организации-владельца\
