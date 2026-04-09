@@ -2,23 +2,23 @@
   set page(paper: "a4", margin: 2cm)
   set text(font: "DejaVu Sans", size: 12pt)
 
-  center(text(20pt, bold: true)[ПУТЕВОЙ ЛИСТ])
+  align(center, text(20pt, weight: "bold")[ПУТЕВОЙ ЛИСТ])
   
   v(1cm)
   
   grid(
     columns: (1fr, 1fr),
     row-gutter: 1.5cm,
-    [#bold[Дата:] #date],
-    [#bold[Номер документа:] № 001],
+    [#text(weight: "bold")[Дата:] #date],
+    [#text(weight: "bold")[Номер документа:] № 001],
     
-    [#bold[Водитель:]],
+    [#text(weight: "bold")[Водитель:]],
     [#driver],
     
-    [#bold[Транспортное средство:]],
+    [#text(weight: "bold")[Транспортное средство:]],
     [#vehicle],
     
-    [#bold[Вид работ:]],
+    [#text(weight: "bold")[Вид работ:]],
     [#work],
   )
   

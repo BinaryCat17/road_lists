@@ -9,7 +9,7 @@ use tower_http::services::ServeDir;
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 use std::process::Command;
 use std::{fs};
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 use std::env;
 
 #[derive(Clone)]
