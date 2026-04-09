@@ -174,17 +174,17 @@
         columns: (auto, w),
         column-gutter: 5pt,
         row-gutter: 0pt,
-        align: (left + bottom, center),
-        [#label], [#empty_f(100%)],
-        [], [#v(-4pt) #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]]
+        align: bottom,
+        [#label], [#box(width: 100%, stroke: (bottom: 0.5pt), inset: (bottom: 1pt), outset: (bottom: 1pt))[#hide[M]]],
+        [], [#align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]]
       )
       #let sig_doc_row(label, w) = grid(
         columns: (auto, w),
         column-gutter: 5pt,
         row-gutter: 0pt,
-        align: (left + bottom, center),
-        [#label], [#empty_f(100%)],
-        [], [#v(-4pt) #align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]]
+        align: bottom,
+        [#label], [#box(width: 100%, stroke: (bottom: 0.5pt), inset: (bottom: 1pt), outset: (bottom: 1pt))[#hide[M]]],
+        [], [#align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]]
       )
       #grid(
         columns: (1.5fr, 1.5fr, 1fr),
