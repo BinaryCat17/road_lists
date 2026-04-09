@@ -170,6 +170,7 @@
       )
 
       #v(6pt)
+      #set text(size: 8.2pt)
       #let sig_row(label, w) = grid(
         columns: (auto, w),
         column-gutter: 5pt,
@@ -186,6 +187,14 @@
         [#label], [#box(width: 100%, stroke: (bottom: 0.5pt), inset: (bottom: 1pt), outset: (bottom: 1pt))[#hide[M]]],
         [], [#align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]]
       )
+      #let sig_med_row(left_text) = grid(
+        columns: (auto, 1fr),
+        column-gutter: 5pt,
+        row-gutter: 0pt,
+        align: bottom,
+        [#left_text], [#box(width: 100%, stroke: (bottom: 0.5pt), inset: (bottom: 1pt), outset: (bottom: 1pt))[#hide[M]]],
+        [], [#align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]]
+      )
       #grid(
         columns: (1.5fr, 1.5fr, 1fr),
         column-gutter: 15pt,
@@ -197,11 +206,11 @@
           #v(2pt)
           Водитель по состоянию здоровья к управлению допущен
           #v(2pt)
-          #sig_doc_row("", 6cm)
+          #sig_med_row([#date 07:30])
           #v(8pt)
           Прошел послерейсовый медицинский осмотр
           #v(2pt)
-          #sig_row("", 6cm)
+          #sig_med_row([#empty_f(0.5cm) #empty_f(1.2cm) 20#empty_f(0.5cm) г. #empty_f(0.5cm):#empty_f(0.5cm)])
         ],
         [
           Автомобиль технически исправен.
