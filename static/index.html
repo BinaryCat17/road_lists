@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Путевые Листы</title>
+    <!-- Локальный Tailwind (script, работает в браузере без сборки) -->
+    <script src="/js/tailwind.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#3b82f6',
+            }
+          }
+        }
+      }
+    </script>
+    <!-- Import Maps для использования нативных ES модулей без сборщика -->
+    <script type="importmap">
+      {
+        "imports": {
+          "vue": "/js/vue.esm-browser.js"
+        }
+      }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
+    <div id="app" v-cloak>
+        <!-- Vue-приложение будет смонтировано сюда -->
+    </div>
+
+    <!-- Подключение главного файла логики -->
+    <script type="module" src="/js/app.js"></script>
+
+    <style>
+      [v-cloak] { display: none; }
+    </style>
+</body>
+</html>

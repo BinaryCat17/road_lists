@@ -1,0 +1,5 @@
+/target
+/data/road_lists.db
+/data/temp.typ
+/static/out.pdf
+.env
