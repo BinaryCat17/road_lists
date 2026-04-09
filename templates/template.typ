@@ -52,7 +52,7 @@
       #v(5pt)
 
       #grid(
-        columns: (15.8cm, 1fr),
+        columns: (1fr, auto),
         column-gutter: 10pt,
         [
           #grid(
@@ -92,7 +92,7 @@
         ],
         [
           #grid(
-            columns: (auto, 1fr),
+            columns: (auto, auto),
             column-gutter: 5pt,
             [
               #grid(
