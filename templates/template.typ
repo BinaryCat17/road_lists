@@ -107,42 +107,46 @@
               )
             ],
             [
-              #grid(
-                columns: (1.8cm, 0.7cm, 0.7cm, 0.7cm, 0.7cm, 1.2cm, 1.5cm, 1.8cm),
-                stroke: 0.5pt,
-                inset: 2pt,
-                align: center + horizon,
-                grid.cell(rowspan: 2)[*Работа водителя и ТС*],
-                grid.cell(colspan: 4)[время по графику],
-                grid.cell(rowspan: 2)[нулевой\ проб.км],
-                grid.cell(rowspan: 2)[спидом.\ км],
-                grid.cell(rowspan: 2)[время факт.\ ч, мин.]
-                ,
-                [чис.], [мес.], [ч], [мин],
-                [1], [2], [3], [4], [5], [6], [7], [8],
-                [#h_cell(15pt, "выезд")], [], [], [], [], [], [], [],
-                [#h_cell(15pt, "возврат")], [], [], [], [], [], [], []
-              )
+              #align(right)[
+                #grid(
+                  columns: (1.8cm, 0.7cm, 0.7cm, 0.7cm, 0.7cm, 1.2cm, 1.5cm, 1.8cm),
+                  stroke: 0.5pt,
+                  inset: 2pt,
+                  align: center + horizon,
+                  grid.cell(rowspan: 2)[*Работа водителя и ТС*],
+                  grid.cell(colspan: 4)[время по графику],
+                  grid.cell(rowspan: 2)[нулевой\ проб.км],
+                  grid.cell(rowspan: 2)[спидом.\ км],
+                  grid.cell(rowspan: 2)[время факт.\ ч, мин.]
+                  ,
+                  [чис.], [мес.], [ч], [мин],
+                  [1], [2], [3], [4], [5], [6], [7], [8],
+                  [#h_cell(15pt, "выезд")], [], [], [], [], [], [], [],
+                  [#h_cell(15pt, "возврат")], [], [], [], [], [], [], []
+                )
+              ]
             ]
           )
           #v(4pt)
-          #grid(
-            columns: (0.9cm, 0.8cm, 1.1cm, 1.1cm, 1.1cm, 1cm, 1cm, 1cm, 1.2cm),
-            stroke: 0.5pt,
-            inset: 2pt,
-            align: center + horizon,
-            grid.cell(colspan: 9)[*Движение горючего*],
-            grid.cell(colspan: 2)[горючее],
-            grid.cell(rowspan: 2)[выдано],
-            grid.cell(colspan: 2)[остаток при],
-            grid.cell(rowspan: 2)[сдано],
-            grid.cell(rowspan: 2)[коэфф.],
-            grid.cell(colspan: 2)[Время работы],
-            [марка], [код], [выезде], [возвр.], [спец.], [двиг.],
-            [9], [10], [11], [12], [13], [14], [15], [16], [17],
-            [#h_cell(12pt, "дизель")], [], [], [], [], [], [], [], [],
-            grid.cell(colspan: 2)[#h_cell(12pt, "подпись")], [запр.], [мех.], [мех.], [запр.], [дисп.], [], []
-          )
+          #align(right)[
+            #grid(
+              columns: (0.9cm, 0.8cm, 1.1cm, 1.1cm, 1.1cm, 1cm, 1cm, 1cm, 1.2cm),
+              stroke: 0.5pt,
+              inset: 2pt,
+              align: center + horizon,
+              grid.cell(colspan: 9)[*Движение горючего*],
+              grid.cell(colspan: 2)[горючее],
+              grid.cell(rowspan: 2)[выдано],
+              grid.cell(colspan: 2)[остаток при],
+              grid.cell(rowspan: 2)[сдано],
+              grid.cell(rowspan: 2)[коэфф.],
+              grid.cell(colspan: 2)[Время работы],
+              [марка], [код], [выезде], [возвр.], [спец.], [двиг.],
+              [9], [10], [11], [12], [13], [14], [15], [16], [17],
+              [#h_cell(12pt, "дизель")], [], [], [], [], [], [], [], [],
+              grid.cell(colspan: 2)[#h_cell(12pt, "подпись")], [запр.], [мех.], [мех.], [запр.], [дисп.], [], []
+            )
+          ]
         ]
       )
 
@@ -175,11 +179,14 @@
         [
           Водительское удостоверение проверил, задание выдал,\
           выдать горючее #empty_f(1.5cm) литров\
+          #v(8pt)
           Диспетчер #empty_f(4cm)\
+          #v(-5pt)
           #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
           #v(4pt)
           Водитель по состоянию здоровья к управлению допущен\
           #empty_f(6cm)\
+          #v(-5pt)
           #align(center)[#sub[должность] #h(0.5cm) #sub[подпись] #h(0.5cm) #sub[расшифровка подписи]]
           #v(4pt)
           #text(weight: "bold")[Место для штампа]
@@ -187,16 +194,24 @@
         [
           Автомобиль технически исправен. Выезд разрешен. Механик\
           #empty_f(6cm)\
+          #v(-5pt)
           #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
           #v(4pt)
-          Автомобиль принял: Водитель\
-          #empty_f(6cm)\
+          #grid(
+            columns: (auto, 1fr),
+            column-gutter: 5pt,
+            [Автомобиль принял: Водитель], [#empty_f(100%)]
+          )
+          #v(-5pt)
           #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
           #v(4pt)
           При возвращении автомобиль #empty_f(2.5cm) #sub[исправен/неисправен]\
+          #v(8pt)
           Сдал водитель #empty_f(4cm)\
+          #v(-5pt)
           #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
           Принял механик #empty_f(4cm)\
+          #v(-5pt)
           #align(center)[#sub[подпись] #h(1cm) #sub[расшифровка подписи]]
         ],
         [
