@@ -57,33 +57,37 @@
         [
           #grid(
             columns: (auto, 1fr),
+            column-gutter: 5pt,
             row-gutter: 4pt,
             align: bottom,
-            [Организация ], [#field(" ООО 'АгроТранс', ИНН 1234567890, г. Москва ", w: 100%)\ #align(center)[#sub[наименование, адрес, номер телефона]]],
+            [Организация], [#field(" ООО 'АгроТранс', ИНН 1234567890, г. Москва ", w: 100%)\ #align(center)[#sub[наименование, адрес, номер телефона]]],
           )
           #v(4pt)
           #grid(
             columns: (auto, 1fr, auto, 3cm, auto, 2cm),
+            column-gutter: 5pt,
             align: bottom,
             row-gutter: 8pt,
-            [Марка автомобиля ], [#h(5pt) #field(vehicle, w: 100%) #h(5pt)], [ Гос. номер ], [#h(5pt) #field(license_plate, w: 100%) #h(5pt)], [ Гаражный № ], [#h(5pt) #empty_f(100%)],
-            [Водитель ], [#h(5pt) #field(driver, w: 100%) #h(5pt)], [ Табельный № ], [#h(5pt) #empty_f(100%)], [], [],
+            [Марка автомобиля], [#field(vehicle, w: 100%)], [Гос. номер], [#field(license_plate, w: 100%)], [Гаражный №], [#empty_f(100%)],
+            [Водитель], [#field(driver, w: 100%)], [Табельный №], [#empty_f(100%)], [], [],
           )
           #v(4pt)
           #grid(
             columns: (auto, 1.5fr, auto, 1fr, auto, 1fr),
+            column-gutter: 5pt,
             align: bottom,
             row-gutter: 8pt,
-            [Удостоверение № ], [#h(5pt) #field(driving_license, w: 100%) #h(5pt)], [ Класс ], [#h(5pt) #empty_f(100%)], [ СНИЛС ], [#h(5pt) #field(snils, w: 100%)],
-            [Лиценз. карточка ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Рег. № ], [#h(5pt) #empty_f(100%)], [ Серия ], [#h(5pt) #empty_f(100%)],
-            [Прицеп 1 ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гос. номер ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гаражный № ], [#h(5pt) #empty_f(100%)],
-            [Прицеп 2 ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гос. номер ], [#h(5pt) #empty_f(100%) #h(5pt)], [ Гаражный № ], [#h(5pt) #empty_f(100%)],
+            [Удостоверение №], [#field(driving_license, w: 100%)], [Класс], [#empty_f(100%)], [СНИЛС], [#field(snils, w: 100%)],
+            [Лиценз. карточка], [#empty_f(100%)], [Рег. №], [#empty_f(100%)], [Серия], [#empty_f(100%)],
+            [Прицеп 1], [#empty_f(100%)], [Гос. номер], [#empty_f(100%)], [Гаражный №], [#empty_f(100%)],
+            [Прицеп 2], [#empty_f(100%)], [Гос. номер], [#empty_f(100%)], [Гаражный №], [#empty_f(100%)],
           )
           #v(4pt)
           #grid(
             columns: (auto, 1fr),
+            column-gutter: 5pt,
             align: bottom,
-            [Сопровождающие лица ], [#h(5pt) #empty_f(100%)]
+            [Сопровождающие лица], [#empty_f(100%)]
           )
         ],
         [
