@@ -2,12 +2,11 @@ import { createApp, ref, onMounted, computed } from 'vue';
 
 const App = {
   setup() {
-    const currentTab = ref('print'); // print, settings, drivers, vehicles, works
+    const currentTab = ref('print'); // print, settings, defaults, drivers, vehicles
     const statusMessage = ref('');
     
     const drivers = ref([]);
     const vehicles = ref([]);
-    const works = ref([]);
     const companySettings = ref({ company_name: '', company_address: '', company_inn: '', dispatcher_name: '', mechanic_name: '', medic_name: '' });
 
     const defaultValues = ref({
@@ -17,16 +16,14 @@ const App = {
 
     const loadData = async () => {
       try {
-        const [dRes, vRes, wRes, sRes, defRes] = await Promise.all([
+        const [dRes, vRes, sRes, defRes] = await Promise.all([
           fetch('/api/drivers'),
           fetch('/api/vehicles'),
-          fetch('/api/works'),
           fetch('/api/settings'),
           fetch('/api/defaults')
         ]);
         drivers.value = await dRes.json();
         vehicles.value = await vRes.json();
-        works.value = await wRes.json();
         const s = await sRes.json();
         if (s) companySettings.value = { ...companySettings.value, ...s };
         const d = await defRes.json();
@@ -155,16 +152,13 @@ const App = {
     // --- Логика CRUD ---
     const formDriver = ref({ id: null, name: '', driving_license: '', tractor_license: '', snils: '' });
     const formVehicle = ref({ id: null, name: '', license_plate: '', sts: '', vehicle_type: 'Грузовой', category: '' });
-    const formWork = ref({ id: null, name: '' });
 
     const editDriver = (d) => formDriver.value = { ...d, driving_license: d.driving_license || '', tractor_license: d.tractor_license || '', snils: d.snils || '' };
     const editVehicle = (v) => formVehicle.value = { ...v, license_plate: v.license_plate || '', sts: v.sts || '', vehicle_type: v.vehicle_type || 'Грузовой', category: v.category || '' };
-    const editWork = (w) => formWork.value = { ...w };
 
     const clearForm = (type) => {
       if (type === 'driver') formDriver.value = { id: null, name: '', driving_license: '', tractor_license: '', snils: '' };
       if (type === 'vehicle') formVehicle.value = { id: null, name: '', license_plate: '', sts: '', vehicle_type: 'Грузовой', category: '' };
-      if (type === 'work') formWork.value = { id: null, name: '' };
     };
 
     const saveItem = async (type, payload) => {
@@ -227,14 +221,14 @@ const App = {
 
     return {
       currentTab, statusMessage,
-      drivers, vehicles, works, companySettings, defaultValues,
+      drivers, vehicles, companySettings, defaultValues,
       selectedDriver, selectedVehicle, selectedDate,
       tractorMode, isTractorSelected, selectedVehicleObj,
       taskRows, addTaskRow, removeTaskRow,
       fieldRows, addFieldRow, removeFieldRow,
       printQueue, addToQueue, removeFromQueue, printBatch, saveSettings, saveDefaults,
-      formDriver, formVehicle, formWork,
-      editDriver, editVehicle, editWork, clearForm, saveItem, deleteItem
+      formDriver, formVehicle,
+      editDriver, editVehicle, clearForm, saveItem, deleteItem
     };
   },
   template: `
@@ -247,7 +241,6 @@ const App = {
         <button @click="currentTab = 'defaults'" :class="currentTab === 'defaults' ? 'text-brand border-b-2 border-brand font-semibold' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 transition whitespace-nowrap">По умолчанию</button>
         <button @click="currentTab = 'drivers'" :class="currentTab === 'drivers' ? 'text-brand border-b-2 border-brand font-semibold' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 transition whitespace-nowrap">Водители</button>
         <button @click="currentTab = 'vehicles'" :class="currentTab === 'vehicles' ? 'text-brand border-b-2 border-brand font-semibold' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 transition whitespace-nowrap">Техника</button>
-        <button @click="currentTab = 'works'" :class="currentTab === 'works' ? 'text-brand border-b-2 border-brand font-semibold' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 transition whitespace-nowrap">Виды работ</button>
       </div>
 
       <!-- Вкладка: Печать -->
@@ -506,30 +499,6 @@ const App = {
                 <td class="p-2">
                   <button @click="editVehicle(v)" class="text-blue-500 mr-2">✎</button>
                   <button @click="deleteItem('vehicle', v.id)" class="text-red-500">🗑</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Вкладка: Виды работ -->
-      <div v-if="currentTab === 'works'" class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-        <h2 class="text-xl font-bold mb-4">Виды работ</h2>
-        <form @submit.prevent="saveItem('work', formWork)" class="flex flex-wrap gap-2 mb-6 items-end">
-          <div class="flex-1 min-w-[200px]"><label class="block text-xs text-gray-500">Наименование</label><input required v-model="formWork.name" class="w-full border p-2 rounded"></div>
-          <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold">{{ formWork.id ? 'Сохранить' : 'Добавить' }}</button>
-          <button type="button" v-if="formWork.id" @click="clearForm('work')" class="bg-gray-300 px-4 py-2 rounded">Отмена</button>
-        </form>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-sm">
-            <thead><tr class="bg-gray-100 border-b"><th class="p-2">Вид работы</th><th class="p-2 w-24">Действия</th></tr></thead>
-            <tbody>
-              <tr v-for="w in works" :key="w.id" class="border-b hover:bg-gray-50">
-                <td class="p-2">{{ w.name }}</td>
-                <td class="p-2">
-                  <button @click="editWork(w)" class="text-blue-500 mr-2">✎</button>
-                  <button @click="deleteItem('work', w.id)" class="text-red-500">🗑</button>
                 </td>
               </tr>
             </tbody>
