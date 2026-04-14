@@ -17,24 +17,67 @@ struct AppState {
     db: SqlitePool,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct TaskRow {
+    customer: String,
+    loading_point: String,
+    unloading_point: String,
+    cargo: String,
+    trips: String,
+    distance: String,
+    tons: String,
+    arrival_time: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 struct PrintRequest {
     driver_id: i32,
     vehicle_id: i32,
-    work_type_id: i32,
+    tasks: Vec<TaskRow>,
+    tractor_mode: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct PrintBatchItem {
     driver_id: i32,
     vehicle_id: i32,
-    work_type_id: i32,
     date: Option<String>,
+    tasks: Vec<TaskRow>,
+    tractor_mode: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct PrintBatchRequest {
     items: Vec<PrintBatchItem>,
+}
+
+#[derive(Serialize, Deserialize, sqlx::FromRow, Clone)]
+struct DefaultValues {
+    id: i32,
+    customer: Option<String>,
+    loading_point: Option<String>,
+    unloading_point: Option<String>,
+    cargo: Option<String>,
+    trips: Option<String>,
+    distance: Option<String>,
+    tons: Option<String>,
+    arrival_time: Option<String>,
+    field_object: Option<String>,
+    field_area: Option<String>,
+    field_norm: Option<String>,
+    field_fact: Option<String>,
+    field_motohours: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, sqlx::FromRow, Clone)]
+struct CompanySettings {
+    id: i32,
+    company_name: Option<String>,
+    company_address: Option<String>,
+    company_inn: Option<String>,
+    dispatcher_name: Option<String>,
+    mechanic_name: Option<String>,
+    medic_name: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -59,7 +102,8 @@ struct Vehicle {
     name: String, 
     license_plate: Option<String>,
     sts: Option<String>,
-    vehicle_type: Option<String>
+    vehicle_type: Option<String>,
+    category: Option<String>
 }
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Clone)]
@@ -120,6 +164,10 @@ async fn main() {
          CREATE TABLE IF NOT EXISTS vehicles (id INTEGER PRIMARY KEY, name TEXT);
          CREATE TABLE IF NOT EXISTS work_types (id INTEGER PRIMARY KEY, name TEXT);"
     ).execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE IF NOT EXISTS company_settings (id INTEGER PRIMARY KEY CHECK (id = 1), company_name TEXT, company_address TEXT, company_inn TEXT, dispatcher_name TEXT, mechanic_name TEXT, medic_name TEXT)")
+        .execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE IF NOT EXISTS default_values (id INTEGER PRIMARY KEY CHECK (id = 1), customer TEXT, loading_point TEXT, unloading_point TEXT, cargo TEXT, trips TEXT, distance TEXT, tons TEXT, arrival_time TEXT, field_object TEXT, field_area TEXT, field_norm TEXT, field_fact TEXT, field_motohours TEXT)")
+        .execute(&pool).await.unwrap();
 
     // Migrations (ignore errors if columns exist)
     let _ = sqlx::query("ALTER TABLE drivers ADD COLUMN driving_license TEXT").execute(&pool).await;
@@ -131,6 +179,7 @@ async fn main() {
     let _ = sqlx::query("ALTER TABLE vehicles ADD COLUMN license_plate TEXT").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE vehicles ADD COLUMN sts TEXT").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE vehicles ADD COLUMN vehicle_type TEXT").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE vehicles ADD COLUMN category TEXT").execute(&pool).await;
 
     // Migrate any existing 'pts' data to 'sts'
     let _ = sqlx::query("UPDATE vehicles SET sts = pts WHERE sts IS NULL AND pts IS NOT NULL").execute(&pool).await;
@@ -141,6 +190,14 @@ async fn main() {
         sqlx::query("INSERT INTO vehicles (name, vehicle_type) VALUES ('КамАЗ 65115', 'Грузовой'), ('Трактор МТЗ-82', 'Трактор')").execute(&pool).await.unwrap();
         sqlx::query("INSERT INTO work_types (name) VALUES ('Перевозка зерна'), ('Вспашка поля')").execute(&pool).await.unwrap();
     }
+    let settings_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM company_settings").fetch_one(&pool).await.unwrap();
+    if settings_count.0 == 0 {
+        sqlx::query("INSERT INTO company_settings (id) VALUES (1)").execute(&pool).await.unwrap();
+    }
+    let defaults_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM default_values").fetch_one(&pool).await.unwrap();
+    if defaults_count.0 == 0 {
+        sqlx::query("INSERT INTO default_values (id) VALUES (1)").execute(&pool).await.unwrap();
+    }
 
     let state = AppState { db: pool };
 
@@ -150,6 +207,8 @@ async fn main() {
         .route("/api/works", get(get_works).post(create_work).put(update_work).delete(delete_work))
         .route("/api/print", post(print_waybill))
         .route("/api/print_batch", post(print_batch))
+        .route("/api/settings", get(get_settings).post(save_settings))
+        .route("/api/defaults", get(get_defaults).post(save_defaults))
         .nest_service("/", ServeDir::new("static"))
         .with_state(state);
 
@@ -195,22 +254,22 @@ async fn get_vehicles(State(state): State<AppState>) -> Json<Vec<Vehicle>> {
 }
 
 #[derive(Deserialize)]
-struct CreateVehicleReq { name: String, license_plate: Option<String>, sts: Option<String>, vehicle_type: Option<String> }
+struct CreateVehicleReq { name: String, license_plate: Option<String>, sts: Option<String>, vehicle_type: Option<String>, category: Option<String> }
 #[derive(Deserialize)]
-struct UpdateVehicleReq { id: i32, name: String, license_plate: Option<String>, sts: Option<String>, vehicle_type: Option<String> }
+struct UpdateVehicleReq { id: i32, name: String, license_plate: Option<String>, sts: Option<String>, vehicle_type: Option<String>, category: Option<String> }
 
 async fn create_vehicle(State(state): State<AppState>, Json(payload): Json<CreateVehicleReq>) -> Json<Vehicle> {
-    let id = sqlx::query("INSERT INTO vehicles (name, license_plate, sts, vehicle_type) VALUES (?, ?, ?, ?)")
-        .bind(&payload.name).bind(&payload.license_plate).bind(&payload.sts).bind(&payload.vehicle_type)
+    let id = sqlx::query("INSERT INTO vehicles (name, license_plate, sts, vehicle_type, category) VALUES (?, ?, ?, ?, ?)")
+        .bind(&payload.name).bind(&payload.license_plate).bind(&payload.sts).bind(&payload.vehicle_type).bind(&payload.category)
         .execute(&state.db).await.unwrap().last_insert_rowid() as i32;
-    Json(Vehicle { id, name: payload.name, license_plate: payload.license_plate, sts: payload.sts, vehicle_type: payload.vehicle_type })
+    Json(Vehicle { id, name: payload.name, license_plate: payload.license_plate, sts: payload.sts, vehicle_type: payload.vehicle_type, category: payload.category })
 }
 
 async fn update_vehicle(State(state): State<AppState>, Json(payload): Json<UpdateVehicleReq>) -> Json<Vehicle> {
-    sqlx::query("UPDATE vehicles SET name = ?, license_plate = ?, sts = ?, vehicle_type = ? WHERE id = ?")
-        .bind(&payload.name).bind(&payload.license_plate).bind(&payload.sts).bind(&payload.vehicle_type).bind(payload.id)
+    sqlx::query("UPDATE vehicles SET name = ?, license_plate = ?, sts = ?, vehicle_type = ?, category = ? WHERE id = ?")
+        .bind(&payload.name).bind(&payload.license_plate).bind(&payload.sts).bind(&payload.vehicle_type).bind(&payload.category).bind(payload.id)
         .execute(&state.db).await.unwrap();
-    Json(Vehicle { id: payload.id, name: payload.name, license_plate: payload.license_plate, sts: payload.sts, vehicle_type: payload.vehicle_type })
+    Json(Vehicle { id: payload.id, name: payload.name, license_plate: payload.license_plate, sts: payload.sts, vehicle_type: payload.vehicle_type, category: payload.category })
 }
 
 async fn delete_vehicle(State(state): State<AppState>, Json(payload): Json<DeleteReq>) -> Json<()> {
@@ -247,13 +306,131 @@ async fn delete_work(State(state): State<AppState>, Json(payload): Json<DeleteRe
     Json(())
 }
 
+async fn get_settings(State(state): State<AppState>) -> Json<CompanySettings> {
+    let settings: CompanySettings = sqlx::query_as("SELECT * FROM company_settings WHERE id = 1")
+        .fetch_one(&state.db).await.unwrap();
+    Json(settings)
+}
+
+#[derive(Deserialize)]
+struct SaveSettingsReq {
+    company_name: Option<String>,
+    company_address: Option<String>,
+    company_inn: Option<String>,
+    dispatcher_name: Option<String>,
+    mechanic_name: Option<String>,
+    medic_name: Option<String>,
+}
+
+async fn save_settings(State(state): State<AppState>, Json(payload): Json<SaveSettingsReq>) -> Json<CompanySettings> {
+    sqlx::query("INSERT INTO company_settings (id, company_name, company_address, company_inn, dispatcher_name, mechanic_name, medic_name) VALUES (1, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET company_name=excluded.company_name, company_address=excluded.company_address, company_inn=excluded.company_inn, dispatcher_name=excluded.dispatcher_name, mechanic_name=excluded.mechanic_name, medic_name=excluded.medic_name")
+        .bind(&payload.company_name)
+        .bind(&payload.company_address)
+        .bind(&payload.company_inn)
+        .bind(&payload.dispatcher_name)
+        .bind(&payload.mechanic_name)
+        .bind(&payload.medic_name)
+        .execute(&state.db).await.unwrap();
+    Json(CompanySettings {
+        id: 1,
+        company_name: payload.company_name,
+        company_address: payload.company_address,
+        company_inn: payload.company_inn,
+        dispatcher_name: payload.dispatcher_name,
+        mechanic_name: payload.mechanic_name,
+        medic_name: payload.medic_name,
+    })
+}
+
+async fn get_defaults(State(state): State<AppState>) -> Json<DefaultValues> {
+    let defaults: DefaultValues = sqlx::query_as("SELECT * FROM default_values WHERE id = 1")
+        .fetch_one(&state.db).await.unwrap();
+    Json(defaults)
+}
+
+#[derive(Deserialize)]
+struct SaveDefaultsReq {
+    customer: Option<String>,
+    loading_point: Option<String>,
+    unloading_point: Option<String>,
+    cargo: Option<String>,
+    trips: Option<String>,
+    distance: Option<String>,
+    tons: Option<String>,
+    arrival_time: Option<String>,
+    field_object: Option<String>,
+    field_area: Option<String>,
+    field_norm: Option<String>,
+    field_fact: Option<String>,
+    field_motohours: Option<String>,
+}
+
+async fn save_defaults(State(state): State<AppState>, Json(payload): Json<SaveDefaultsReq>) -> Json<DefaultValues> {
+    sqlx::query("INSERT INTO default_values (id, customer, loading_point, unloading_point, cargo, trips, distance, tons, arrival_time, field_object, field_area, field_norm, field_fact, field_motohours) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET customer=excluded.customer, loading_point=excluded.loading_point, unloading_point=excluded.unloading_point, cargo=excluded.cargo, trips=excluded.trips, distance=excluded.distance, tons=excluded.tons, arrival_time=excluded.arrival_time, field_object=excluded.field_object, field_area=excluded.field_area, field_norm=excluded.field_norm, field_fact=excluded.field_fact, field_motohours=excluded.field_motohours")
+        .bind(&payload.customer)
+        .bind(&payload.loading_point)
+        .bind(&payload.unloading_point)
+        .bind(&payload.cargo)
+        .bind(&payload.trips)
+        .bind(&payload.distance)
+        .bind(&payload.tons)
+        .bind(&payload.arrival_time)
+        .bind(&payload.field_object)
+        .bind(&payload.field_area)
+        .bind(&payload.field_norm)
+        .bind(&payload.field_fact)
+        .bind(&payload.field_motohours)
+        .execute(&state.db).await.unwrap();
+    Json(DefaultValues {
+        id: 1,
+        customer: payload.customer,
+        loading_point: payload.loading_point,
+        unloading_point: payload.unloading_point,
+        cargo: payload.cargo,
+        trips: payload.trips,
+        distance: payload.distance,
+        tons: payload.tons,
+        arrival_time: payload.arrival_time,
+        field_object: payload.field_object,
+        field_area: payload.field_area,
+        field_norm: payload.field_norm,
+        field_fact: payload.field_fact,
+        field_motohours: payload.field_motohours,
+    })
+}
+
+fn escape_typst(s: &str) -> String {
+    s.replace("\\", "\\\\").replace("\"", "\\\"")
+}
+
+fn format_tasks_typst(tasks: &[TaskRow]) -> String {
+    let mut parts = Vec::new();
+    for task in tasks.iter().take(3) {
+        parts.push(format!(
+            r#"(customer: "{}", loading_point: "{}", unloading_point: "{}", cargo: "{}", trips: "{}", distance: "{}", tons: "{}", arrival_time: "{}")"#,
+            escape_typst(&task.customer),
+            escape_typst(&task.loading_point),
+            escape_typst(&task.unloading_point),
+            escape_typst(&task.cargo),
+            escape_typst(&task.trips),
+            escape_typst(&task.distance),
+            escape_typst(&task.tons),
+            escape_typst(&task.arrival_time)
+        ));
+    }
+    for _ in parts.len()..3 {
+        parts.push(r#"(customer: "", loading_point: "", unloading_point: "", cargo: "", trips: "", distance: "", tons: "", arrival_time: "")"#.to_string());
+    }
+    format!("({})", parts.join(", "))
+}
+
 async fn print_waybill(
     State(state): State<AppState>,
     Json(payload): Json<PrintRequest>
 ) -> Json<PrintResponse> {
     let driver: Driver = sqlx::query_as("SELECT * FROM drivers WHERE id = ?").bind(payload.driver_id).fetch_one(&state.db).await.unwrap();
     let vehicle: Vehicle = sqlx::query_as("SELECT * FROM vehicles WHERE id = ?").bind(payload.vehicle_id).fetch_one(&state.db).await.unwrap();
-    let work: WorkType = sqlx::query_as("SELECT * FROM work_types WHERE id = ?").bind(payload.work_type_id).fetch_one(&state.db).await.unwrap();
+    let settings: CompanySettings = sqlx::query_as("SELECT * FROM company_settings WHERE id = 1").fetch_one(&state.db).await.unwrap();
 
     let template_base = fs::read_to_string("templates/template.typ").expect("Шаблон не найден");
     
@@ -267,6 +444,8 @@ async fn print_waybill(
     
     let typst_fn = if vehicle_type == "Трактор" { "#waybill_tractor" } else { "#waybill_truck" };
     
+    let tractor_mode_val = payload.tractor_mode.unwrap_or_else(|| "cargo".to_string());
+    let category = vehicle.category.unwrap_or_default();
     let call = format!(r#"
 {}(
   driver: "{}",
@@ -276,20 +455,36 @@ async fn print_waybill(
   vehicle: "{}",
   license_plate: "{}",
   sts: "{}",
-  work: "{}",
-  date: "{}"
+  category: "{}",
+  date: "{}",
+  company_name: "{}",
+  company_address: "{}",
+  company_inn: "{}",
+  dispatcher_name: "{}",
+  mechanic_name: "{}",
+  medic_name: "{}",
+  tasks: {},
+  tractor_mode: "{}"
 )
 "#, 
         typst_fn,
-        driver.name.replace("\"", "\\\""),
-        drv_license.replace("\"", "\\\""),
-        tr_license.replace("\"", "\\\""),
-        snils.replace("\"", "\\\""),
-        vehicle.name.replace("\"", "\\\""),
-        license_plate.replace("\"", "\\\""),
-        sts.replace("\"", "\\\""),
-        work.name.replace("\"", "\\\""),
-        "09.04.2026"
+        escape_typst(&driver.name),
+        escape_typst(&drv_license),
+        escape_typst(&tr_license),
+        escape_typst(&snils),
+        escape_typst(&vehicle.name),
+        escape_typst(&license_plate),
+        escape_typst(&sts),
+        escape_typst(&category),
+        escape_typst(&"09.04.2026"),
+        escape_typst(&settings.company_name.unwrap_or_default()),
+        escape_typst(&settings.company_address.unwrap_or_default()),
+        escape_typst(&settings.company_inn.unwrap_or_default()),
+        escape_typst(&settings.dispatcher_name.unwrap_or_default()),
+        escape_typst(&settings.mechanic_name.unwrap_or_default()),
+        escape_typst(&settings.medic_name.unwrap_or_default()),
+        format_tasks_typst(&payload.tasks),
+        escape_typst(&tractor_mode_val)
     );
 
     let temp_typ = "data/temp.typ";
@@ -308,12 +503,12 @@ async fn print_waybill(
 
 async fn print_batch(State(state): State<AppState>, Json(payload): Json<PrintBatchRequest>) -> Json<PrintResponse> {
     let template_base = fs::read_to_string("templates/template.typ").expect("Шаблон не найден");
+    let settings: CompanySettings = sqlx::query_as("SELECT * FROM company_settings WHERE id = 1").fetch_one(&state.db).await.unwrap();
     let mut compiled_typst = String::new();
     
     for (i, item) in payload.items.iter().enumerate() {
         let driver: Driver = sqlx::query_as("SELECT * FROM drivers WHERE id = ?").bind(item.driver_id).fetch_one(&state.db).await.unwrap();
         let vehicle: Vehicle = sqlx::query_as("SELECT * FROM vehicles WHERE id = ?").bind(item.vehicle_id).fetch_one(&state.db).await.unwrap();
-        let work: WorkType = sqlx::query_as("SELECT * FROM work_types WHERE id = ?").bind(item.work_type_id).fetch_one(&state.db).await.unwrap();
         
         let drv_license = driver.driving_license.unwrap_or_default();
         let tr_license = driver.tractor_license.unwrap_or_default();
@@ -326,6 +521,8 @@ async fn print_batch(State(state): State<AppState>, Json(payload): Json<PrintBat
         let date = item.date.clone().unwrap_or_else(|| "09.04.2026".to_string());
         let typst_fn = if vehicle_type == "Трактор" { "#waybill_tractor" } else { "#waybill_truck" };
         
+        let tractor_mode_val = item.tractor_mode.clone().unwrap_or_else(|| "cargo".to_string());
+        let category = vehicle.category.unwrap_or_default();
         let call = format!(r#"
 {}(
   driver: "{}",
@@ -335,20 +532,36 @@ async fn print_batch(State(state): State<AppState>, Json(payload): Json<PrintBat
   vehicle: "{}",
   license_plate: "{}",
   sts: "{}",
-  work: "{}",
-  date: "{}"
+  category: "{}",
+  date: "{}",
+  company_name: "{}",
+  company_address: "{}",
+  company_inn: "{}",
+  dispatcher_name: "{}",
+  mechanic_name: "{}",
+  medic_name: "{}",
+  tasks: {},
+  tractor_mode: "{}"
 )
 "#, 
             typst_fn,
-            driver.name.replace("\"", "\\\""),
-            drv_license.replace("\"", "\\\""),
-            tr_license.replace("\"", "\\\""),
-            snils.replace("\"", "\\\""),
-            vehicle.name.replace("\"", "\\\""),
-            license_plate.replace("\"", "\\\""),
-            sts.replace("\"", "\\\""),
-            work.name.replace("\"", "\\\""),
-            date.replace("\"", "\\\"")
+            escape_typst(&driver.name),
+            escape_typst(&drv_license),
+            escape_typst(&tr_license),
+            escape_typst(&snils),
+            escape_typst(&vehicle.name),
+            escape_typst(&license_plate),
+            escape_typst(&sts),
+            escape_typst(&category),
+            escape_typst(&date),
+            escape_typst(&settings.company_name.clone().unwrap_or_default()),
+            escape_typst(&settings.company_address.clone().unwrap_or_default()),
+            escape_typst(&settings.company_inn.clone().unwrap_or_default()),
+            escape_typst(&settings.dispatcher_name.clone().unwrap_or_default()),
+            escape_typst(&settings.mechanic_name.clone().unwrap_or_default()),
+            escape_typst(&settings.medic_name.clone().unwrap_or_default()),
+            format_tasks_typst(&item.tasks),
+            escape_typst(&tractor_mode_val)
         );
         
         if i > 0 {
