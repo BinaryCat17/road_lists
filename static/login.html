@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Путевые Листы</title>
+    <script src="/js/tailwind.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#3b82f6',
+              yandex: '#FC3F1D',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+      }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div class="login-card w-full max-w-md p-8 rounded-2xl shadow-2xl">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-brand rounded-xl mx-auto mb-4 flex items-center justify-center">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">Путевые Листы</h1>
+            <p class="text-gray-500 mt-2">Войдите для доступа к системе</p>
+        </div>
+
+        <a href="/auth/yandex/login" class="w-full flex items-center justify-center gap-3 bg-yandex hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.5 17.5h-2.8v-5.2h-3.4v5.2H7.5V6.5h2.8v4.8h3.4V6.5h2.8v11z"/>
+            </svg>
+            Войти через Яндекс
+        </a>
+
+        <div class="mt-6 text-center text-sm text-gray-500">
+            <p>Только авторизованные пользователи могут</p>
+            <p>создавать и печатать путевые листы</p>
+        </div>
+    </div>
+</body>
+</html>

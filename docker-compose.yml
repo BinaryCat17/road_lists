@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  road-lists:
+    build: .
+    container_name: road-lists
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - YANDEX_CLIENT_ID=${YANDEX_CLIENT_ID}
+      - YANDEX_CLIENT_SECRET=${YANDEX_CLIENT_SECRET}
+      - BASE_URL=${BASE_URL:-https://docs.salskayastep.ru}
+      - PORT=3000
+    volumes:
+      - ./data:/app/data
+    networks:
+      - road-lists-network
+
+networks:
+  road-lists-network:
+    driver: bridge
