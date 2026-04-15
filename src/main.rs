@@ -203,8 +203,6 @@ async fn yandex_login(
 ) -> Redirect {
     let (auth_url, _csrf_token) = state.oauth_client
         .authorize_url(oauth2::CsrfToken::new_random)
-        .add_scope(Scope::new("login:email".to_string()))
-        .add_scope(Scope::new("login:info".to_string()))
         .url();
     
     Redirect::to(auth_url.as_str())
