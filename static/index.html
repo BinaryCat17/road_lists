@@ -30,13 +30,13 @@
         <div v-if="loading" class="flex items-center justify-center min-h-screen">
             <div class="text-center">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
-                <p class="mt-4 text-gray-600">Загрузка...\u003c/p>
+                <p class="mt-4 text-gray-600">Загрузка...</p>
             </div>
         </div>
 
         <div v-else-if="!isAuthenticated" class="flex items-center justify-center min-h-screen">
             <div class="text-center">
-                <p class="text-gray-600 mb-4">Требуется авторизация\u003c/p>
+                <p class="text-gray-600 mb-4">Требуется авторизация</p>
                 <a href="/login.html" class="bg-brand text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
                     Войти
                 </a>
@@ -52,8 +52,8 @@
                         {{ userInitials }}
                     </div>
                     <div>
-                        <p class="font-semibold text-gray-800">{{ user?.name || 'Пользователь' }}\u003c/p>
-                        <p class="text-sm text-gray-500">{{ user?.email || '' }}\u003c/p>
+                        <p class="font-semibold text-gray-800">{{ user?.name || 'Пользователь' }}</p>
+                        <p class="text-sm text-gray-500">{{ user?.email || '' }}</p>
                     </div>
                 </div>
                 <a href="/auth/logout" class="text-red-500 hover:text-red-700 text-sm font-medium">
@@ -81,13 +81,23 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Дата</label>
                                 <input type="text" v-model="selectedDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="ДД.ММ.ГГГГ">
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Водитель</label>
-                                <select v-model="selectedDriver" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand">
-                                    <option value="" disabled>Выберите...</option>
-                                    <option v-for="d in drivers" :key="d.id" :value="d.id">{{ d.name }}</option>
-                                </select>
+                            <div class="flex items-center gap-3 pt-6">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" v-model="noDateFlag" class="w-4 h-4 text-brand rounded focus:ring-brand border-gray-300">
+                                    <span class="text-sm text-gray-700">Без даты</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" v-model="noTimeFlag" class="w-4 h-4 text-brand rounded focus:ring-brand border-gray-300">
+                                    <span class="text-sm text-gray-700">Без времени</span>
+                                </label>
                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Водитель</label>
+                            <select v-model="selectedDriver" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand">
+                                <option value="" disabled>Выберите...</option>
+                                <option v-for="d in drivers" :key="d.id" :value="d.id">{{ d.name }}</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Техника</label>
@@ -108,6 +118,59 @@
                                     <input type="radio" value="field" v-model="tractorMode" class="accent-brand">
                                     <span>Полевые работы</span>
                                 </label>
+                            </div>
+                            <div v-if="tractorMode === 'field'" class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Вид работы</label>
+                                    <input type="text" v-model="workName" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Например: Вспашка, Посев">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Прицеп / Навесное оборудование</label>
+                                    <input type="text" v-model="trailer" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Например: Культиватор, Сеялка">
+                                </div>
+                            </div>
+                            <div v-else class="mb-3">
+                                <label class="block text-xs text-gray-500 mb-1">Вид работы</label>
+                                <input type="text" v-model="workName" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Например: Перевозка зерна">
+                            </div>
+                        </div>
+
+                        <!-- Время и работа -->
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="font-semibold text-sm text-gray-700 mb-2">Время и работа</div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Медосмотр</label>
+                                    <input type="text" v-model="medicalExamTime" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="07:30">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Выезд</label>
+                                    <input type="text" v-model="departureTime" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="08:00">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Возврат</label>
+                                    <input type="text" v-model="returnTime" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="18:00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Движение горючего -->
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="font-semibold text-sm text-gray-700 mb-2">Движение горючего</div>
+                            <div class="grid grid-cols-3 gap-2 mb-2">
+                                <input type="text" v-model="fuelBrand" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Марка">
+                                <input type="text" v-model="fuelCode" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Код">
+                                <input type="text" v-model="fuelIssued" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Выдано">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mb-2">
+                                <input type="text" v-model="fuelRemainDepart" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Остаток при выезде">
+                                <input type="text" v-model="fuelRemainReturn" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Остаток при возврате">
+                                <input type="text" v-model="fuelSubmitted" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Сдано">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" v-model="fuelCoeff" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Коэфф.">
+                                <input type="text" v-model="fuelSpecial" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Спец.">
+                                <input type="text" v-model="fuelEngine" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Двиг.">
                             </div>
                         </div>
 
@@ -152,10 +215,11 @@
                                     </div>
                                     <div class="grid grid-cols-3 gap-2 mb-2">
                                         <input type="text" v-model="row.object" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Объект (поле, участок)">
+                                        <input type="text" v-model="row.work_name" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Наименование работы">
                                         <input type="text" v-model="row.area" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Площадь, га">
-                                        <input type="text" v-model="row.motohours" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Моточасы">
                                     </div>
                                     <div class="grid grid-cols-3 gap-2">
+                                        <input type="text" v-model="row.motohours" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Моточасы">
                                         <input type="text" v-model="row.norm" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Норма выработки">
                                         <input type="text" v-model="row.fact" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Факт">
                                     </div>
@@ -263,6 +327,32 @@
                     <div class="grid grid-cols-3 gap-3">
                         <input type="text" v-model="defaultValues.field_norm" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Норма выработки">
                         <input type="text" v-model="defaultValues.field_fact" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Факт">
+                        <input type="text" v-model="defaultValues.work_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Вид работы (для тракторов)">
+                        <input type="text" v-model="defaultValues.trailer" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Прицеп / Навесное оборудование">
+                    </div>
+
+                    <div class="font-semibold text-sm text-gray-700 border-b border-gray-200 pb-1 pt-2">Время и работа</div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="text" v-model="defaultValues.medical_exam_time" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Время медосмотра (07:30)">
+                        <input type="text" v-model="defaultValues.departure_time" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Время выезда">
+                        <input type="text" v-model="defaultValues.return_time" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Время возврата">
+                    </div>
+
+                    <div class="font-semibold text-sm text-gray-700 border-b border-gray-200 pb-1 pt-2">Движение горючего</div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="text" v-model="defaultValues.fuel_brand" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Марка горючего">
+                        <input type="text" v-model="defaultValues.fuel_code" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Код">
+                        <input type="text" v-model="defaultValues.fuel_issued" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Выдано">
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="text" v-model="defaultValues.fuel_remain_depart" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Остаток при выезде">
+                        <input type="text" v-model="defaultValues.fuel_remain_return" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Остаток при возврате">
+                        <input type="text" v-model="defaultValues.fuel_submitted" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Сдано">
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="text" v-model="defaultValues.fuel_coeff" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Коэфф.">
+                        <input type="text" v-model="defaultValues.fuel_special" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Спец.">
+                        <input type="text" v-model="defaultValues.fuel_engine" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-brand" placeholder="Двиг.">
                     </div>
 
                     <button @click="saveDefaults" class="w-full bg-brand hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition active:scale-[0.98]">
@@ -276,9 +366,10 @@
                 <h2 class="text-xl font-bold mb-4">Справочник водителей</h2>
                 <form @submit.prevent="saveItem('driver', formDriver)" class="flex flex-wrap gap-2 mb-6 items-end">
                     <div class="flex-1 min-w-[150px]"><label class="block text-xs text-gray-500">ФИО</label><input required v-model="formDriver.name" class="w-full border p-2 rounded"></div>
-                    <div class="flex-1 min-w-[150px]"><label class="block text-xs text-gray-500">В/У</label><input v-model="formDriver.driving_license" class="w-full border p-2 rounded"></div>
-                    <div class="flex-1 min-w-[150px]"><label class="block text-xs text-gray-500">Удост. тракториста</label><input v-model="formDriver.tractor_license" class="w-full border p-2 rounded"></div>
-                    <div class="flex-1 min-w-[150px]"><label class="block text-xs text-gray-500">СНИЛС</label><input v-model="formDriver.snils" class="w-full border p-2 rounded"></div>
+                    <div class="flex-1 min-w-[120px]"><label class="block text-xs text-gray-500">В/У</label><input v-model="formDriver.driving_license" class="w-full border p-2 rounded"></div>
+                    <div class="flex-1 min-w-[120px]"><label class="block text-xs text-gray-500">Дата выдачи В/У</label><input v-model="formDriver.driving_license_date" class="w-full border p-2 rounded" placeholder="ДД.ММ.ГГГГ"></div>
+                    <div class="flex-1 min-w-[120px]"><label class="block text-xs text-gray-500">Удост. тракториста</label><input v-model="formDriver.tractor_license" class="w-full border p-2 rounded"></div>
+                    <div class="flex-1 min-w-[120px]"><label class="block text-xs text-gray-500">Дата выдачи удост.</label><input v-model="formDriver.tractor_license_date" class="w-full border p-2 rounded" placeholder="ДД.ММ.ГГГГ"></div>
                     <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold">{{ formDriver.id ? 'Сохранить' : 'Добавить' }}</button>
                     <button type="button" v-if="formDriver.id" @click="clearForm('driver')" class="bg-gray-300 px-4 py-2 rounded">Отмена</button>
                 </form>
@@ -288,8 +379,9 @@
                             <tr class="bg-gray-100 border-b">
                                 <th class="p-2">ФИО</th>
                                 <th class="p-2">В/У</th>
+                                <th class="p-2">Дата В/У</th>
                                 <th class="p-2">Тракторные</th>
-                                <th class="p-2">СНИЛС</th>
+                                <th class="p-2">Дата удост.</th>
                                 <th class="p-2 w-24">Действия</th>
                             </tr>
                         </thead>
@@ -297,8 +389,9 @@
                             <tr v-for="d in drivers" :key="d.id" class="border-b hover:bg-gray-50">
                                 <td class="p-2">{{ d.name }}</td>
                                 <td class="p-2">{{ d.driving_license }}</td>
+                                <td class="p-2">{{ d.driving_license_date }}</td>
                                 <td class="p-2">{{ d.tractor_license }}</td>
-                                <td class="p-2">{{ d.snils }}</td>
+                                <td class="p-2">{{ d.tractor_license_date }}</td>
                                 <td class="p-2">
                                     <button @click="editDriver(d)" class="text-blue-500 mr-2">✎</button>
                                     <button @click="deleteItem('driver', d.id)" class="text-red-500">🗑</button>

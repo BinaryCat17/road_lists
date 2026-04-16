@@ -47,6 +47,22 @@ struct PrintBatchItem {
     date: Option<String>,
     tasks: Vec<TaskRow>,
     tractor_mode: Option<String>,
+    work_name: Option<String>,
+    trailer: Option<String>,
+    no_date: Option<bool>,
+    no_time: Option<bool>,
+    medical_exam_time: Option<String>,
+    departure_time: Option<String>,
+    return_time: Option<String>,
+    fuel_brand: Option<String>,
+    fuel_code: Option<String>,
+    fuel_issued: Option<String>,
+    fuel_remain_depart: Option<String>,
+    fuel_remain_return: Option<String>,
+    fuel_submitted: Option<String>,
+    fuel_coeff: Option<String>,
+    fuel_special: Option<String>,
+    fuel_engine: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -71,6 +87,20 @@ struct DefaultValues {
     field_norm: Option<String>,
     field_fact: Option<String>,
     field_motohours: Option<String>,
+    medical_exam_time: Option<String>,
+    departure_time: Option<String>,
+    return_time: Option<String>,
+    fuel_brand: Option<String>,
+    fuel_code: Option<String>,
+    fuel_issued: Option<String>,
+    fuel_remain_depart: Option<String>,
+    fuel_remain_return: Option<String>,
+    fuel_submitted: Option<String>,
+    fuel_coeff: Option<String>,
+    fuel_special: Option<String>,
+    fuel_engine: Option<String>,
+    work_name: Option<String>,
+    trailer: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Clone)]
@@ -97,9 +127,10 @@ struct Driver {
     id: i32, 
     user_id: i64,
     name: String, 
-    driving_license: Option<String>, 
+    driving_license: Option<String>,
+    driving_license_date: Option<String>,
     tractor_license: Option<String>,
-    snils: Option<String>
+    tractor_license_date: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Clone)]
@@ -446,18 +477,20 @@ async fn get_drivers(
 #[derive(Deserialize)]
 struct CreateDriverReq { 
     name: String, 
-    driving_license: Option<String>, 
-    tractor_license: Option<String>, 
-    snils: Option<String> 
+    driving_license: Option<String>,
+    driving_license_date: Option<String>,
+    tractor_license: Option<String>,
+    tractor_license_date: Option<String>,
 }
 
 #[derive(Deserialize)]
 struct UpdateDriverReq { 
     id: i32, 
     name: String, 
-    driving_license: Option<String>, 
-    tractor_license: Option<String>, 
-    snils: Option<String> 
+    driving_license: Option<String>,
+    driving_license_date: Option<String>,
+    tractor_license: Option<String>,
+    tractor_license_date: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -471,13 +504,14 @@ async fn create_driver(
     let user_id = get_user_id_from_session(State(state.clone()), jar).await?;
     
     let id = sqlx::query(
-        "INSERT INTO drivers (user_id, name, driving_license, tractor_license, snils) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO drivers (user_id, name, driving_license, driving_license_date, tractor_license, tractor_license_date) VALUES (?, ?, ?, ?, ?, ?)"
     )
     .bind(user_id)
     .bind(&payload.name)
     .bind(&payload.driving_license)
+    .bind(&payload.driving_license_date)
     .bind(&payload.tractor_license)
-    .bind(&payload.snils)
+    .bind(&payload.tractor_license_date)
     .execute(&state.db)
     .await
     .map_err(|e| {
@@ -490,9 +524,10 @@ async fn create_driver(
         id, 
         user_id,
         name: payload.name, 
-        driving_license: payload.driving_license, 
-        tractor_license: payload.tractor_license, 
-        snils: payload.snils 
+        driving_license: payload.driving_license,
+        driving_license_date: payload.driving_license_date,
+        tractor_license: payload.tractor_license,
+        tractor_license_date: payload.tractor_license_date,
     }))
 }
 
@@ -504,12 +539,13 @@ async fn update_driver(
     let user_id = get_user_id_from_session(State(state.clone()), jar).await?;
     
     sqlx::query(
-        "UPDATE drivers SET name = ?, driving_license = ?, tractor_license = ?, snils = ? WHERE id = ? AND user_id = ?"
+        "UPDATE drivers SET name = ?, driving_license = ?, driving_license_date = ?, tractor_license = ?, tractor_license_date = ? WHERE id = ? AND user_id = ?"
     )
     .bind(&payload.name)
     .bind(&payload.driving_license)
+    .bind(&payload.driving_license_date)
     .bind(&payload.tractor_license)
-    .bind(&payload.snils)
+    .bind(&payload.tractor_license_date)
     .bind(payload.id)
     .bind(user_id)
     .execute(&state.db)
@@ -523,9 +559,10 @@ async fn update_driver(
         id: payload.id, 
         user_id,
         name: payload.name, 
-        driving_license: payload.driving_license, 
-        tractor_license: payload.tractor_license, 
-        snils: payload.snils 
+        driving_license: payload.driving_license,
+        driving_license_date: payload.driving_license_date,
+        tractor_license: payload.tractor_license,
+        tractor_license_date: payload.tractor_license_date,
     }))
 }
 
@@ -763,6 +800,20 @@ struct SaveDefaultsReq {
     field_norm: Option<String>,
     field_fact: Option<String>,
     field_motohours: Option<String>,
+    medical_exam_time: Option<String>,
+    departure_time: Option<String>,
+    return_time: Option<String>,
+    fuel_brand: Option<String>,
+    fuel_code: Option<String>,
+    fuel_issued: Option<String>,
+    fuel_remain_depart: Option<String>,
+    fuel_remain_return: Option<String>,
+    fuel_submitted: Option<String>,
+    fuel_coeff: Option<String>,
+    fuel_special: Option<String>,
+    fuel_engine: Option<String>,
+    work_name: Option<String>,
+    trailer: Option<String>,
 }
 
 async fn get_defaults(
@@ -793,13 +844,19 @@ async fn save_defaults(
     let user_id = get_user_id_from_session(State(state.clone()), jar).await?;
     
     sqlx::query(
-        "INSERT INTO default_values (user_id, customer, loading_point, unloading_point, cargo, trips, distance, tons, arrival_time, field_object, field_area, field_norm, field_fact, field_motohours) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+        "INSERT INTO default_values (user_id, customer, loading_point, unloading_point, cargo, trips, distance, tons, arrival_time, field_object, field_area, field_norm, field_fact, field_motohours, medical_exam_time, departure_time, return_time, fuel_brand, fuel_code, fuel_issued, fuel_remain_depart, fuel_remain_return, fuel_submitted, fuel_coeff, fuel_special, fuel_engine, work_name, trailer) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
          ON CONFLICT(user_id) DO UPDATE SET 
          customer=excluded.customer, loading_point=excluded.loading_point, unloading_point=excluded.unloading_point, 
          cargo=excluded.cargo, trips=excluded.trips, distance=excluded.distance, tons=excluded.tons, arrival_time=excluded.arrival_time,
          field_object=excluded.field_object, field_area=excluded.field_area, field_norm=excluded.field_norm, 
-         field_fact=excluded.field_fact, field_motohours=excluded.field_motohours"
+         field_fact=excluded.field_fact, field_motohours=excluded.field_motohours,
+         medical_exam_time=excluded.medical_exam_time, departure_time=excluded.departure_time, return_time=excluded.return_time,
+         fuel_brand=excluded.fuel_brand, fuel_code=excluded.fuel_code, fuel_issued=excluded.fuel_issued,
+         fuel_remain_depart=excluded.fuel_remain_depart, fuel_remain_return=excluded.fuel_remain_return,
+         fuel_submitted=excluded.fuel_submitted, fuel_coeff=excluded.fuel_coeff,
+         fuel_special=excluded.fuel_special, fuel_engine=excluded.fuel_engine,
+         work_name=excluded.work_name, trailer=excluded.trailer"
     )
     .bind(user_id)
     .bind(&payload.customer)
@@ -815,6 +872,20 @@ async fn save_defaults(
     .bind(&payload.field_norm)
     .bind(&payload.field_fact)
     .bind(&payload.field_motohours)
+    .bind(&payload.medical_exam_time)
+    .bind(&payload.departure_time)
+    .bind(&payload.return_time)
+    .bind(&payload.fuel_brand)
+    .bind(&payload.fuel_code)
+    .bind(&payload.fuel_issued)
+    .bind(&payload.fuel_remain_depart)
+    .bind(&payload.fuel_remain_return)
+    .bind(&payload.fuel_submitted)
+    .bind(&payload.fuel_coeff)
+    .bind(&payload.fuel_special)
+    .bind(&payload.fuel_engine)
+    .bind(&payload.work_name)
+    .bind(&payload.trailer)
     .execute(&state.db)
     .await
     .map_err(|e| {
@@ -838,6 +909,20 @@ async fn save_defaults(
         field_norm: payload.field_norm,
         field_fact: payload.field_fact,
         field_motohours: payload.field_motohours,
+        medical_exam_time: payload.medical_exam_time,
+        departure_time: payload.departure_time,
+        return_time: payload.return_time,
+        fuel_brand: payload.fuel_brand,
+        fuel_code: payload.fuel_code,
+        fuel_issued: payload.fuel_issued,
+        fuel_remain_depart: payload.fuel_remain_depart,
+        fuel_remain_return: payload.fuel_remain_return,
+        fuel_submitted: payload.fuel_submitted,
+        fuel_coeff: payload.fuel_coeff,
+        fuel_special: payload.fuel_special,
+        fuel_engine: payload.fuel_engine,
+        work_name: payload.work_name,
+        trailer: payload.trailer,
     }))
 }
 
@@ -910,8 +995,9 @@ async fn print_batch(
         .map_err(|_| (StatusCode::NOT_FOUND, "Vehicle not found".to_string()))?;
         
         let drv_license = driver.driving_license.unwrap_or_default();
+        let drv_license_date = driver.driving_license_date.unwrap_or_default();
         let tr_license = driver.tractor_license.unwrap_or_default();
-        let snils = driver.snils.unwrap_or_default();
+        let tr_license_date = driver.tractor_license_date.unwrap_or_default();
         
         let license_plate = vehicle.license_plate.unwrap_or_default();
         let sts = vehicle.sts.unwrap_or_default();
@@ -922,17 +1008,80 @@ async fn print_batch(
             now.format("%d.%m.%Y").to_string()
         });
         
-        let typst_fn = if vehicle_type == "Трактор" { "#waybill_tractor" } else { "#waybill_truck" };
-        
         let tractor_mode_val = item.tractor_mode.clone().unwrap_or_else(|| "cargo".to_string());
         let category = vehicle.category.unwrap_or_default();
+        let work_name = item.work_name.clone().unwrap_or_default();
+        let no_date = item.no_date.unwrap_or(false);
+        let no_time = item.no_time.unwrap_or(false);
         
-        let call = format!(r#"
-{}(
+        let is_tractor = vehicle_type == "Трактор";
+        
+        // Получаем значения по умолчанию для времени и горючего
+        let defaults: DefaultValues = sqlx::query_as(
+            "SELECT * FROM default_values WHERE user_id = ?"
+        )
+        .bind(user_id)
+        .fetch_optional(&state.db)
+        .await
+        .map_err(|e| {
+            eprintln!("DB error: {}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string())
+        })?
+        .unwrap_or(DefaultValues {
+            id: 1,
+            user_id,
+            customer: None,
+            loading_point: None,
+            unloading_point: None,
+            cargo: None,
+            trips: None,
+            distance: None,
+            tons: None,
+            arrival_time: None,
+            field_object: None,
+            field_area: None,
+            field_norm: None,
+            field_fact: None,
+            field_motohours: None,
+            medical_exam_time: Some("07:30".to_string()),
+            departure_time: None,
+            return_time: None,
+            fuel_brand: Some("дизель".to_string()),
+            fuel_code: None,
+            fuel_issued: None,
+            fuel_remain_depart: None,
+            fuel_remain_return: None,
+            fuel_submitted: None,
+            fuel_coeff: None,
+            fuel_special: None,
+            fuel_engine: None,
+            work_name: None,
+            trailer: None,
+        });
+        
+        // Используем данные из формы, если есть, иначе из дефолтов
+        let medical_exam_time_val = item.medical_exam_time.clone().or(defaults.medical_exam_time.clone()).unwrap_or_else(|| "07:30".to_string());
+        let departure_time_val = item.departure_time.clone().or(defaults.departure_time.clone()).unwrap_or_default();
+        let return_time_val = item.return_time.clone().or(defaults.return_time.clone()).unwrap_or_default();
+        let fuel_brand_val = item.fuel_brand.clone().or(defaults.fuel_brand.clone()).unwrap_or_else(|| "дизель".to_string());
+        let fuel_code_val = item.fuel_code.clone().or(defaults.fuel_code.clone()).unwrap_or_default();
+        let fuel_issued_val = item.fuel_issued.clone().or(defaults.fuel_issued.clone()).unwrap_or_default();
+        let fuel_remain_depart_val = item.fuel_remain_depart.clone().or(defaults.fuel_remain_depart.clone()).unwrap_or_default();
+        let fuel_remain_return_val = item.fuel_remain_return.clone().or(defaults.fuel_remain_return.clone()).unwrap_or_default();
+        let fuel_submitted_val = item.fuel_submitted.clone().or(defaults.fuel_submitted.clone()).unwrap_or_default();
+        let fuel_coeff_val = item.fuel_coeff.clone().or(defaults.fuel_coeff.clone()).unwrap_or_default();
+        let fuel_special_val = item.fuel_special.clone().or(defaults.fuel_special.clone()).unwrap_or_default();
+        let fuel_engine_val = item.fuel_engine.clone().or(defaults.fuel_engine.clone()).unwrap_or_default();
+        
+        // Формируем вызов в зависимости от типа ТС
+        let call = if is_tractor {
+            format!(r#"
+#waybill_tractor(
   driver: "{}",
   driving_license: "{}",
+  driving_license_date: "{}",
   tractor_license: "{}",
-  snils: "{}",
+  tractor_license_date: "{}",
   vehicle: "{}",
   license_plate: "{}",
   sts: "{}",
@@ -944,15 +1093,31 @@ async fn print_batch(
   dispatcher_name: "{}",
   mechanic_name: "{}",
   medic_name: "{}",
-  tasks: {},
-  tractor_mode: "{}"
+  medical_exam_time: "{}",
+  departure_time: "{}",
+  return_time: "{}",
+  fuel_brand: "{}",
+  fuel_code: "{}",
+  fuel_issued: "{}",
+  fuel_remain_depart: "{}",
+  fuel_remain_return: "{}",
+  fuel_submitted: "{}",
+  fuel_coeff: "{}",
+  fuel_special: "{}",
+  fuel_engine: "{}",
+  work_name: "{}",
+  trailer: "{}",
+  tractor_mode: "{}",
+  no_date: {},
+  no_time: {},
+  tasks: {}
 )
-"#, 
-            typst_fn,
+"#,
             escape_typst(&driver.name),
             escape_typst(&drv_license),
+            escape_typst(&drv_license_date),
             escape_typst(&tr_license),
-            escape_typst(&snils),
+            escape_typst(&tr_license_date),
             escape_typst(&vehicle.name),
             escape_typst(&license_plate),
             escape_typst(&sts),
@@ -964,9 +1129,94 @@ async fn print_batch(
             escape_typst(&settings.dispatcher_name.clone().unwrap_or_default()),
             escape_typst(&settings.mechanic_name.clone().unwrap_or_default()),
             escape_typst(&settings.medic_name.clone().unwrap_or_default()),
-            format_tasks_typst(&item.tasks),
-            escape_typst(&tractor_mode_val)
-        );
+            escape_typst(&medical_exam_time_val),
+            escape_typst(&departure_time_val),
+            escape_typst(&return_time_val),
+            escape_typst(&fuel_brand_val),
+            escape_typst(&fuel_code_val),
+            escape_typst(&fuel_issued_val),
+            escape_typst(&fuel_remain_depart_val),
+            escape_typst(&fuel_remain_return_val),
+            escape_typst(&fuel_submitted_val),
+            escape_typst(&fuel_coeff_val),
+            escape_typst(&fuel_special_val),
+            escape_typst(&fuel_engine_val),
+            escape_typst(&work_name),
+            escape_typst(&item.trailer.clone().unwrap_or_default()),
+            escape_typst(&tractor_mode_val),
+            no_date,
+            no_time,
+            format_tasks_typst(&item.tasks)
+        )
+        } else {
+            format!(r#"
+#waybill_truck(
+  driver: "{}",
+  driving_license: "{}",
+  driving_license_date: "{}",
+  tractor_license: "{}",
+  tractor_license_date: "{}",
+  vehicle: "{}",
+  license_plate: "{}",
+  sts: "{}",
+  category: "{}",
+  date: "{}",
+  company_name: "{}",
+  company_address: "{}",
+  company_inn: "{}",
+  dispatcher_name: "{}",
+  mechanic_name: "{}",
+  medic_name: "{}",
+  medical_exam_time: "{}",
+  departure_time: "{}",
+  return_time: "{}",
+  fuel_brand: "{}",
+  fuel_code: "{}",
+  fuel_issued: "{}",
+  fuel_remain_depart: "{}",
+  fuel_remain_return: "{}",
+  fuel_submitted: "{}",
+  fuel_coeff: "{}",
+  fuel_special: "{}",
+  fuel_engine: "{}",
+  no_date: {},
+  no_time: {},
+  tasks: {}
+)
+"#,
+            escape_typst(&driver.name),
+            escape_typst(&drv_license),
+            escape_typst(&drv_license_date),
+            escape_typst(&tr_license),
+            escape_typst(&tr_license_date),
+            escape_typst(&vehicle.name),
+            escape_typst(&license_plate),
+            escape_typst(&sts),
+            escape_typst(&category),
+            escape_typst(&date),
+            escape_typst(&settings.company_name.clone().unwrap_or_default()),
+            escape_typst(&settings.company_address.clone().unwrap_or_default()),
+            escape_typst(&settings.company_inn.clone().unwrap_or_default()),
+            escape_typst(&settings.dispatcher_name.clone().unwrap_or_default()),
+            escape_typst(&settings.mechanic_name.clone().unwrap_or_default()),
+            escape_typst(&settings.medic_name.clone().unwrap_or_default()),
+            escape_typst(&medical_exam_time_val),
+            escape_typst(&departure_time_val),
+            escape_typst(&return_time_val),
+            escape_typst(&fuel_brand_val),
+            escape_typst(&fuel_code_val),
+            escape_typst(&fuel_issued_val),
+            escape_typst(&fuel_remain_depart_val),
+            escape_typst(&fuel_remain_return_val),
+            escape_typst(&fuel_submitted_val),
+            escape_typst(&fuel_coeff_val),
+            escape_typst(&fuel_special_val),
+            escape_typst(&fuel_engine_val),
+            no_date,
+            no_time,
+            format_tasks_typst(&item.tasks)
+        )
+        };
         
         if i > 0 {
             compiled_typst.push_str("\n#pagebreak()\n");
