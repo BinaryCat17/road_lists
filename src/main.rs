@@ -6,7 +6,7 @@ use axum::{
 use axum_extra::extract::cookie::{Cookie, CookieJar};
 use oauth2::{
     basic::BasicClient, AuthUrl, TokenUrl, RedirectUrl, AuthorizationCode,
-    ClientId, ClientSecret, Scope, TokenResponse,
+    ClientId, ClientSecret, TokenResponse,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -20,6 +20,7 @@ use rand::RngCore;
 
 const SESSION_COOKIE_NAME: &str = "session_id";
 const SESSION_DURATION_DAYS: i64 = 7;
+const OAUTH_CSRF_COOKIE_NAME: &str = "oauth_csrf_state";
 
 #[derive(Clone)]
 struct AppState {
@@ -231,12 +232,22 @@ struct YandexUserInfo {
 
 async fn yandex_login(
     State(state): State<AppState>,
-) -> Redirect {
-    let (auth_url, _csrf_token) = state.oauth_client
+    jar: CookieJar,
+) -> (CookieJar, Redirect) {
+    let (auth_url, csrf_token) = state.oauth_client
         .authorize_url(oauth2::CsrfToken::new_random)
         .url();
-    
-    Redirect::to(auth_url.as_str())
+
+    let csrf_cookie = Cookie::build((OAUTH_CSRF_COOKIE_NAME, csrf_token.secret().clone()))
+        .path("/")
+        .http_only(true)
+        .secure(false)
+        .same_site(axum_extra::extract::cookie::SameSite::Lax)
+        .max_age(time::Duration::minutes(10));
+
+    let jar = jar.add(csrf_cookie);
+
+    (jar, Redirect::to(auth_url.as_str()))
 }
 
 async fn yandex_callback(
@@ -244,6 +255,16 @@ async fn yandex_callback(
     Query(params): Query<AuthRequest>,
     jar: CookieJar,
 ) -> Result<(CookieJar, Redirect), (StatusCode, String)> {
+    let expected_csrf = jar.get(OAUTH_CSRF_COOKIE_NAME).map(|c| c.value().to_string());
+    let jar = jar.remove(Cookie::from(OAUTH_CSRF_COOKIE_NAME));
+
+    match (&expected_csrf, &params.state) {
+        (Some(expected), Some(actual)) if expected == actual => {}
+        _ => {
+            return Err((StatusCode::BAD_REQUEST, "Invalid OAuth state".to_string()));
+        }
+    }
+
     let token = match state.oauth_client
         .exchange_code(AuthorizationCode::new(params.code))
         .request_async(oauth2::reqwest::async_http_client)
