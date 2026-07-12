@@ -735,13 +735,23 @@ async fn get_settings(
         "SELECT * FROM company_settings WHERE user_id = ?"
     )
     .bind(user_id)
-    .fetch_one(&state.db)
+    .fetch_optional(&state.db)
     .await
     .map_err(|e| {
         eprintln!("DB error: {}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string())
-    })?;
-    
+    })?
+    .unwrap_or(CompanySettings {
+        id: 0,
+        user_id,
+        company_name: None,
+        company_address: None,
+        company_inn: None,
+        dispatcher_name: None,
+        mechanic_name: None,
+        medic_name: None,
+    });
+
     Ok(Json(settings))
 }
 
@@ -826,13 +836,44 @@ async fn get_defaults(
         "SELECT * FROM default_values WHERE user_id = ?"
     )
     .bind(user_id)
-    .fetch_one(&state.db)
+    .fetch_optional(&state.db)
     .await
     .map_err(|e| {
         eprintln!("DB error: {}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string())
-    })?;
-    
+    })?
+    .unwrap_or(DefaultValues {
+        id: 0,
+        user_id,
+        customer: None,
+        loading_point: None,
+        unloading_point: None,
+        cargo: None,
+        trips: None,
+        distance: None,
+        tons: None,
+        arrival_time: None,
+        field_object: None,
+        field_area: None,
+        field_norm: None,
+        field_fact: None,
+        field_motohours: None,
+        medical_exam_time: None,
+        departure_time: None,
+        return_time: None,
+        fuel_brand: None,
+        fuel_code: None,
+        fuel_issued: None,
+        fuel_remain_depart: None,
+        fuel_remain_return: None,
+        fuel_submitted: None,
+        fuel_coeff: None,
+        fuel_special: None,
+        fuel_engine: None,
+        work_name: None,
+        trailer: None,
+    });
+
     Ok(Json(defaults))
 }
 
